@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_chroma import Chroma
+# from langchain_chroma import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain_groq import ChatGroq
 from langchain.chains import RetrievalQA
 
@@ -20,62 +21,77 @@ else:
 
 os.environ["GROQ_API_KEY"] = GROQ_API_KEY
 
-# Streamlit UI
-st.set_page_config(page_title="Multi-Document RAG with Groq", layout="wide")
-st.title("📄 Multi-Document RAG Q&A with Groq Llama 3")
+st.set_page_config(page_title="📄 Multi-Doc RAG with Groq + FAISS", layout="wide")
+st.title("📄 Multi-Document RAG with Groq + FAISS")
+st.write("Upload multiple PDFs, ask questions, and get answers powered by Groq LLM.")
 
-# File uploader
-uploaded_files = st.file_uploader("Upload your PDF files", type="pdf", accept_multiple_files=True)
+# ----------------------
+# File Upload
+# ----------------------
+uploaded_files = st.file_uploader(
+    "Upload your PDF files", type=["pdf"], accept_multiple_files=True
+)
 
 if uploaded_files:
-    if st.button("Process Documents"):
-        documents = []
-
-        # Load each PDF
+    if st.button("📑 Process Documents"):
+        all_docs = []
         for uploaded_file in uploaded_files:
-            loader = PyPDFLoader(uploaded_file)
-            documents.extend(loader.load())
+            # Save temp file
+            with open(uploaded_file.name, "wb") as f:
+                f.write(uploaded_file.getbuffer())
 
-        # Split text
+            # Load PDF
+            loader = PyPDFLoader(uploaded_file.name)
+            docs = loader.load()
+            all_docs.extend(docs)
+
+        # ----------------------
+        # Text Splitter
+        # ----------------------
         text_splitter = CharacterTextSplitter(
             separator="\n",
             chunk_size=1000,
             chunk_overlap=200,
             length_function=len
         )
-        text_chunks = text_splitter.split_documents(documents)
+        text_chunks = text_splitter.split_documents(all_docs)
 
-        # Embeddings
+        # ----------------------
+        # Embeddings + Vectorstore (FAISS)
+        # ----------------------
         embedding = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+        vectorstore = FAISS.from_documents(text_chunks, embedding)
 
-        # Vector store (🚨 in-memory, no persistence)
-        vectorstore = Chroma.from_documents(
-            documents=text_chunks,
-            embedding=embedding,
-            persist_directory=None
-        )
+        # Save in session state for queries
+        st.session_state.vstore = vectorstore
+        st.success("✅ Documents processed & FAISS vectorstore created!")
 
-        retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
+# ----------------------
+# Question Answering
+# ----------------------
+if "vstore" in st.session_state:
+    query = st.text_input("💡 Ask a question about your documents:")
 
-        # LLM (Groq Llama-3)
-        llm = ChatGroq(model="llama-3.1-70b-versatile", temperature=0)
+    if st.button("🔍 Submit Query"):
+        retriever = st.session_state.vstore.as_retriever(search_kwargs={"k": 3})
 
+        # Groq LLM
+        llm = ChatGroq(model="llama-3.1-8b-instant", api_key=GROQ_API_KEY)
+
+        # RetrievalQA Chain
         qa_chain = RetrievalQA.from_chain_type(
             llm=llm,
             retriever=retriever,
             return_source_documents=True
         )
 
-        st.success("✅ Documents processed! You can now ask questions.")
+        response = qa_chain(query)
 
-        # Query input
-        query = st.text_input("Ask a question about the documents:")
-        if query:
-            if st.button("Submit Query"):
-                response = qa_chain({"query": query})
-                st.write("### Answer:")
-                st.write(response["result"])
+        # Show Answer
+        st.subheader("📝 Answer")
+        st.write(response["result"])
 
-                with st.expander("Sources"):
-                    for doc in response["source_documents"]:
-                        st.write(doc.metadata.get("source", "Unknown"))
+        # Show Sources
+        with st.expander("📚 Source Documents"):
+            for doc in response["source_documents"]:
+                st.markdown(doc.page_content[:500] + "...")

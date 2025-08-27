@@ -7,5 +7,5 @@ langchain-huggingface
 langchain-groq
 pypdf
 nltk
-chromadb
+faiss-cpu
 sentence-transformers
