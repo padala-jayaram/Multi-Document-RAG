@@ -1,5 +1,5 @@
 import os
-import shutil
+# import shutil
 import streamlit as st
 from dotenv import load_dotenv
 from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader
@@ -53,13 +53,13 @@ if st.button("Submit Documents") and uploaded_files:
 
         # Embeddings + Vectorstore
         embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-        persist_directory = "chroma_db"
-        shutil.rmtree(persist_directory, ignore_errors=True)  # clear old DB
+        # persist_directory = "chroma_db"
+        # shutil.rmtree(persist_directory, ignore_errors=True)  # clear old DB
 
         vectorstore = Chroma.from_documents(
             documents=text_chunks,
             embedding=embeddings,
-            persist_directory=persist_directory
+            persist_directory=None
         )
 
         retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
