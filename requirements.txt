@@ -1,7 +1,6 @@
 streamlit
 python-dotenv
 langchain-community
-langchain-chroma
 langchain-text-splitters
 langchain-huggingface
 langchain-groq
@@ -9,3 +8,5 @@ pypdf
 nltk
 faiss-cpu
 sentence-transformers
+pytesseract
+pdf2image

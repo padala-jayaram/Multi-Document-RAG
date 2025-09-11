@@ -8,8 +8,13 @@ from langchain_huggingface import HuggingFaceEmbeddings
 # from langchain_chroma import Chroma
 from langchain_community.vectorstores import FAISS
 from langchain_groq import ChatGroq
+from langchain.schema import Document
 from langchain.chains import RetrievalQA
+# OCR Imports
+from pdf2image import convert_from_path
+import pytesseract
 
+# reader = easyocr.Reader(['en'])
 # Load environment variables
 # First check Streamlit Secrets (Cloud)
 if "GROQ_API_KEY" in st.secrets:
@@ -25,6 +30,36 @@ st.set_page_config(page_title="📄 Multi-Doc RAG with Groq + FAISS", layout="wi
 st.title("📄 Multi-Document RAG with Groq + FAISS")
 st.write("Upload multiple PDFs, ask questions, and get answers powered by Groq LLM.")
 
+
+# def ocr_pdf(pdf_path):
+#     tesseract_cmd = os.getenv("TESSERACT_CMD")
+#     poppler_path = os.getenv("POPPLER_PATH")
+#     pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
+#     pages = convert_from_path(pdf_path, poppler_path=poppler_path)
+#     docs = []
+#     for i, page in enumerate(pages):
+#         text = pytesseract.image_to_string(page)
+#         docs.append(Document(page_content=text, metadata={"page": i, "source": pdf_path}))
+#     return docs
+def ocr_pdf(pdf_path):
+    # Try loading paths from .env (for local Windows dev)
+    tesseract_cmd = os.getenv("TESSERACT_CMD")
+    poppler_path = os.getenv("POPPLER_PATH")
+
+    if tesseract_cmd:  # Only needed on Windows
+        pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
+
+    # If poppler_path is not provided (like on Streamlit Cloud), use default system install
+    if poppler_path:
+        pages = convert_from_path(pdf_path, poppler_path=poppler_path)
+    else:
+        pages = convert_from_path(pdf_path)
+
+    docs = []
+    for i, page in enumerate(pages):
+        text = pytesseract.image_to_string(page)
+        docs.append(Document(page_content=text, metadata={"page": i, "source": pdf_path}))
+    return docs
 # ----------------------
 # File Upload
 # ----------------------
@@ -37,14 +72,20 @@ if uploaded_files:
         all_docs = []
         for uploaded_file in uploaded_files:
             # Save temp file
-            with open(uploaded_file.name, "wb") as f:
+            pdf_path = uploaded_file.name
+            with open(pdf_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
 
-            # Load PDF
-            loader = PyPDFLoader(uploaded_file.name)
+            # Try normal text extraction
+            loader = PyPDFLoader(pdf_path)
             docs = loader.load()
-            all_docs.extend(docs)
 
+            # If no text found → fallback to OCR
+            if not any(doc.page_content.strip() for doc in docs):
+                st.warning(f"⚠️ No text detected in {pdf_path}")
+                st.info(f"🔍 Using OCR to extract text from {pdf_path}")
+                docs = ocr_pdf(pdf_path)
+            all_docs.extend(docs)
         # ----------------------
         # Text Splitter
         # ----------------------
