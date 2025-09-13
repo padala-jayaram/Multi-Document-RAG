@@ -1,5 +1,6 @@
 streamlit
 python-dotenv
+langchain
 langchain-community
 langchain-text-splitters
 langchain-huggingface
@@ -10,3 +11,4 @@ faiss-cpu
 sentence-transformers
 pytesseract
 pdf2image
+transformers
