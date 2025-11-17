@@ -17,7 +17,9 @@ from langchain_groq import ChatGroq
 # from langchain.chains.retrieval import create_retrieval_chain
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain.schema import Document
+# from langchain.schema import Document
+from langchain_core.documents import Document
+
 
 # OCR
 from pdf2image import convert_from_path
