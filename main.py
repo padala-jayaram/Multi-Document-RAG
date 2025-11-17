@@ -259,7 +259,7 @@ with process_col:
                     #     combine_documents_chain=document_chain
                     # )
                     # qa_chain = retrieval_chain
-                    qa_chain = create_conversational_rag_chain(llm, vectorstore.as_retriever())
+                    qa_chain = create_conversational_rag_chain(llm, retriever)
                     st.session_state.qa_chain = qa_chain
 
                 st.success("✅ Documents processed and conversational chain ready!")
