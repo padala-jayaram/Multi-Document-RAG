@@ -1,10 +1,12 @@
 streamlit
 python-dotenv
 langchain==0.0.350
-langchain-community==0.0.20
-langchain-text-splitters
-langchain-huggingface
-langchain-groq
+langchain-community==0.0.18
+langchain-core==0.1.5
+langchain-groq==0.0.5
+#langchain-text-splitters
+#langchain-huggingface
+#langchain-groq
 pypdf
 nltk
 faiss-cpu
