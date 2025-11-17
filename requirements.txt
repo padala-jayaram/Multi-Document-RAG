@@ -1,14 +1,42 @@
+#streamlit
+#python-dotenv
+#langchain
+#langchain-community
+#langchain-text-splitters
+#langchain-huggingface
+#langchain-groq
+#pypdf
+#nltk
+#faiss-cpu
+#sentence-transformers
+#pytesseract
+#pdf2image
+#transformers
+
 streamlit
 python-dotenv
-langchain
-langchain-community
-langchain-text-splitters
-langchain-huggingface
-langchain-groq
-pypdf
-nltk
+
+# ---- LangChain ecosystem ----
+langchain>=0.2.10
+langchain-core>=0.2.5
+langchain-community>=0.2.6
+langchain-groq>=0.1.5
+langchain-openai>=0.1.7
+
+# ---- Embeddings / Vector DB ----
 faiss-cpu
-sentence-transformers
-pytesseract
+sentence-transformers>=2.2.2
+
+# ---- NLP & Text Processing ----
+nltk
+
+# ---- PDF Processing ----
+pypdf
 pdf2image
-transformers
+pytesseract
+
+# ---- Transformers (for embeddings & OCR support) ----
+transformers>=4.41.0
+
+# ---- HuggingFace (needed for embeddings) ----
+huggingface-hub>=0.24.0
