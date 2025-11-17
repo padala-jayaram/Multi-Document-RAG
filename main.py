@@ -12,7 +12,9 @@ from langchain_text_splitters import CharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_groq import ChatGroq
-from langchain.chains import ConversationalRetrievalChain
+# from langchain.chains import ConversationalRetrievalChain
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains.retrieval import create_retrieval_chain
 from langchain.schema import Document
 
 # OCR
@@ -219,11 +221,17 @@ with process_col:
                     # create QA chain (conversational)
                     retriever = vstore.as_retriever(search_kwargs={"k": 3})
                     llm = ChatGroq(model="llama-3.1-8b-instant", api_key=GROQ_API_KEY)
-                    qa_chain = ConversationalRetrievalChain.from_llm(
-                        llm=llm,
-                        retriever=retriever,
-                        return_source_documents=True
+                    # qa_chain = ConversationalRetrievalChain.from_llm(
+                    #     llm=llm,
+                    #     retriever=retriever,
+                    #     return_source_documents=True
+                    # )
+                    document_chain = create_stuff_documents_chain(llm)
+                    retrieval_chain = create_retrieval_chain(
+                        retriever=vectorstore.as_retriever(),
+                        combine_documents_chain=document_chain
                     )
+                    qa_chain = retrieval_chain
                     st.session_state.qa_chain = qa_chain
 
                 st.success("✅ Documents processed and conversational chain ready!")
