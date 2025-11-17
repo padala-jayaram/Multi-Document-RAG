@@ -1,23 +1,14 @@
 streamlit
 python-dotenv
-
-# --- OLD LANGCHAIN (contains ConversationalRetrievalChain) ---
-langchain==0.0.350
-langchain-community==0.0.18
-langchain-core==0.1.5
-langchain-groq==0.0.5
-
-# --- Embeddings + Vector DB ---
-sentence-transformers
-faiss-cpu
-
-# --- PDF Processing ---
+langchain
+langchain-community
+langchain-text-splitters
+langchain-huggingface
+langchain-groq
 pypdf
-pdf2image
-pytesseract
-
-# --- NLP ---
 nltk
-
-# --- Transformers ---
+faiss-cpu
+sentence-transformers
+pytesseract
+pdf2image
 transformers
