@@ -240,7 +240,8 @@ with process_col:
                     """)
                     
                         def chain(question):
-                            docs = retriever.get_relevant_documents(question)
+                            # docs = retriever.get_relevant_documents(question)
+                            docs = retriever.invoke(question) 
                             context = "\n\n".join([d.page_content for d in docs])
                             formatted = prompt.format(context=context, question=question)
                             ans = llm.invoke(formatted)
