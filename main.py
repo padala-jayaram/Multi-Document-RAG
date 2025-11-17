@@ -241,8 +241,8 @@ with process_col:
                             docs = retriever.get_relevant_documents(question)
                             context = "\n\n".join([d.page_content for d in docs])
                             formatted = prompt.format(context=context, question=question)
-                    
-                            return llm.invoke(formatted)
+                            ans = llm.invoke(formatted)
+                            return {"answer": ans.content, "source_documents": docs}
                     
                         return chain
 
@@ -331,7 +331,7 @@ if st.session_state.qa_chain and st.session_state.vstore and st.session_state.se
 
         # Run the chain
         with st.spinner("Thinking..."):
-            result = st.session_state.qa_chain({"question": user_input, "chat_history": chat_history_for_chain})
+            result = st.session_state.qa_chain(user_input)
 
         answer = result.get("answer") or result.get("result") or ""
         # Save assistant message
